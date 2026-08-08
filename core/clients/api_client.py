@@ -122,7 +122,7 @@ class APIClient:
     def partial_update_booking_by_id(self, booking_id, booking_json):
         with allure.step('Update booking by id'):
             url = f'{self.base_url}{Endpoints.BOOKING_ENDPOINT}/{booking_id}'
-            response = self.session.put(url, json=booking_json, timeout=Timeouts.TIMEOUT)
+            response = self.session.patch(url, json=booking_json, timeout=Timeouts.TIMEOUT)
 
         with allure.step('Assert status code is 200'):
             assert response.status_code == 200, f' Expected status code 200 but got {response.status_code}'
