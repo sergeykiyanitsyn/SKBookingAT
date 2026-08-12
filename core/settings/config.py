@@ -1,8 +1,9 @@
-from enum import Enum
+from enum import Enum, StrEnum, IntEnum
 
-class Users(Enum):
+
+class Users(StrEnum):
     USERNAME = 'admin'
     PASSWORD = 'password123'
 
-class Timeouts(Enum):
+class Timeouts(IntEnum):
     TIMEOUT = 5
