@@ -1,4 +1,4 @@
-BOOKING_SCHEMA = {
+BOOKING_RESPONSE_GET_SCHEMA = {
   "type": "object",
   "properties": {
     "firstname": {
