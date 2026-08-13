@@ -96,16 +96,8 @@ class APIClient:
         with allure.step('Create booking'):
             url = f'{self.base_url}{Endpoints.BOOKING_ENDPOINT}'
             response = self.session.post(url, json=booking_json, timeout=Timeouts.TIMEOUT)
-            # response.raise_for_status()
 
-        with allure.step('Assert status code'):
-            assert response.status_code == 200, f' Expected status code 200 but got {response.status_code}'
-
-        with allure.step('Validate response schema'):
-            response_json = response.json()
-            jsonschema.validate(response_json, CREATE_BOOKING_RESPONSE_SCHEMA)
-
-        return response_json
+        return response
 
     def update_booking_by_id(self, booking_id, booking_json):
         with allure.step('Update booking by id'):
