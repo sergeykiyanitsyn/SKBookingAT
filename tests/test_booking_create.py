@@ -90,7 +90,7 @@ class TestBooking:
             firstname
     ):
         with allure.step('Data preparation'):
-            booking_data = generate_random_booking_data
+            booking_data = generate_random_booking_data.copy()
             booking_data["firstname"] = firstname
 
         with allure.step(f'Send firstname with type data {type(firstname)}'):
@@ -118,7 +118,7 @@ class TestBooking:
             firstname
     ):
         with allure.step('Data preparation'):
-            booking_data = generate_random_booking_data
+            booking_data = generate_random_booking_data.copy()
             booking_data["firstname"] = firstname
 
         with allure.step(f'Send firstname with type data "{firstname}"'):
