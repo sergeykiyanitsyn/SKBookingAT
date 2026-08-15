@@ -30,7 +30,6 @@ class APIClient:
             'Accept': 'application/json'
         }
 
-
     def get_base_url(self, enviroment: Enviroments):
         if enviroment == Enviroments.TEST:
             return os.getenv('TEST_BASE_URL')
@@ -132,13 +131,11 @@ class APIClient:
     def delete_booking_by_id(self, booking_id):
         with allure.step('Delete booking by id'):
             url = f'{self.base_url}{Endpoints.BOOKING_ENDPOINT}/{booking_id}'
-            response = self.session.delete(url, auth=HTTPBasicAuth(Users.USERNAME, Users.PASSWORD), timeout=Timeouts.TIMEOUT)
+            response = self.session.delete(url, auth=HTTPBasicAuth(Users.USERNAME, Users.PASSWORD),
+                                           timeout=Timeouts.TIMEOUT)
             response.raise_for_status()
 
         with allure.step('Assert status code'):
             assert response.status_code == 201, f' Expected status code 201 but got {response.status_code}'
 
         return response.status_code == 201
-
-
-
