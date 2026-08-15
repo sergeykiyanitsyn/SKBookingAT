@@ -96,6 +96,7 @@ class APIClient:
         with allure.step('Create booking'):
             url = f'{self.base_url}{Endpoints.BOOKING_ENDPOINT}'
             response = self.session.post(url, json=booking_json, timeout=Timeouts.TIMEOUT)
+            response.raise_for_status()
 
         return response
 
