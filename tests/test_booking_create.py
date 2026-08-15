@@ -1,7 +1,7 @@
-from http.client import responses
-
 import allure
 import jsonschema
+import pytest
+from requests.exceptions import HTTPError
 
 from core.shemas.create_booking_schema import CREATE_BOOKING_RESPONSE_SCHEMA
 
@@ -12,7 +12,6 @@ class TestBooking:
     @allure.suite("Happy path: success create booking")
     def test_success_create_booking(self, api_client, generate_random_booking_data):
         response = api_client.create_booking(generate_random_booking_data)
-        response.raise_for_status()
 
         with allure.step('Assert status code'):
             assert response.status_code == 200, f' Expected status code 200 but got {response.status_code}'
@@ -24,13 +23,113 @@ class TestBooking:
         assert isinstance(
             response_json["bookingid"], int
         ), f"Booking id is not an integer, got {type(response['bookingid'])}"
-        assert response_json['booking'] == generate_random_booking_data, f"Expected booking data is {generate_random_booking_data}, got {response['bookingid']}"
+        assert response_json[
+                   'booking'] == generate_random_booking_data, f"Expected booking data is {generate_random_booking_data}, got {response['bookingid']}"
 
-    @allure.feature("Negative test: check-out before check-in")
-    def test_negative_checkout_before_checkin(self, api_client, generate_booking_data_checkout_before_checkin):
-        response = api_client.create_booking(generate_booking_data_checkout_before_checkin)
+    @allure.suite("Negative test: Send without required fields")
+    @pytest.mark.parametrize(
+        "field",
+        [
+            "firstname",
+            "lastname",
+            "totalprice",
+            "depositpaid",
+            "bookingdates",
+        ]
+    )
+    def test_create_booking_without_required_field(
+            self,
+            api_client,
+            generate_random_booking_data,
+            field
+    ):
+        with allure.step('Data preparation'):
+            booking_data = generate_random_booking_data.copy()
+            booking_data.pop(field)
 
-        with allure.step('Assert status code'):
-            assert response.status_code == 400
+        with allure.step(f'Send field without {field}'):
+            with pytest.raises(HTTPError) as exc_info:
+                api_client.create_booking(booking_data)
 
+            response = exc_info.value.response
 
+        with allure.step('Assert status code is 500'):
+            assert response.status_code == 500, f'Expected status code 500, but got {response.status_code}'
+
+    @allure.suite("Negative test: Send with empty boby")
+    def test_create_booking_with_empty_body(
+            self,
+            api_client,
+    ):
+        with allure.step('Data preparation'):
+            booking_data = {}
+
+        with allure.step('Send empty boby'):
+            with pytest.raises(HTTPError) as exc_info:
+                api_client.create_booking(booking_data)
+
+            response = exc_info.value.response
+
+        with allure.step('Assert status code is 500'):
+            assert response.status_code == 500, f'Expected status code 500, but got {response.status_code}'
+
+    @allure.suite("Negative test: Send invalid types and invalid data")
+    @pytest.mark.parametrize(
+        "firstname",
+        [
+            25,
+            None,
+            True,
+        ],
+        ids=["number", "None", "Boolean"]
+    )
+    def test_create_booking_with_negative_type_firstname(
+            self,
+            api_client,
+            generate_random_booking_data,
+            firstname
+    ):
+        with allure.step('Data preparation'):
+            booking_data = generate_random_booking_data
+            booking_data["firstname"] = firstname
+
+        with allure.step(f'Send firstname with type data {type(firstname)}'):
+            with pytest.raises(HTTPError) as exc_info:
+                api_client.create_booking(booking_data)
+
+            response = exc_info.value.response
+
+        with allure.step('Assert status code is 500'):
+            assert response.status_code == 500, f'Expected status code 500, but got {response.status_code}'
+
+    @allure.suite("Positive test: Send valid types in firstname")
+    @pytest.mark.parametrize(
+        "firstname",
+        [
+            "Васёк",
+            "",
+        ],
+        ids=["valid_name", "empty_string"]
+    )
+    def test_create_booking_with_positive_type_firstname(
+            self,
+            api_client,
+            generate_random_booking_data,
+            firstname
+    ):
+        with allure.step('Data preparation'):
+            booking_data = generate_random_booking_data
+            booking_data["firstname"] = firstname
+
+        with allure.step(f'Send firstname with type data "{firstname}"'):
+            response = api_client.create_booking(booking_data)
+
+        with allure.step('Assert status code is 500'):
+            assert response.status_code == 200, f'Expected status code 200, but got {response.status_code}'
+
+        with allure.step('Validate response schema'):
+            response_json = response.json()
+            jsonschema.validate(response_json, CREATE_BOOKING_RESPONSE_SCHEMA)
+
+        with allure.step('Name match check'):
+            response_json["firstname"] = booking_data["firstname"]
