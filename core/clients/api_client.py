@@ -9,7 +9,8 @@ from requests.auth import HTTPBasicAuth
 from core.settings.enviroments import Enviroments
 from core.settings.config import Users, Timeouts
 from core.clients.endpoints import Endpoints
-
+from core.shemas.booking_get_id_schema import BOOKING_RESPONSE_GET_SCHEMA
+from core.shemas.create_booking_schema import CREATE_BOOKING_RESPONSE_SCHEMA
 
 load_dotenv()
 
@@ -25,7 +26,8 @@ class APIClient:
         self.base_url = self.get_base_url(enviroment)
         self.session = requests.Session()
         self.session.headers = {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
         }
 
     def get_base_url(self, enviroment: Enviroments):
@@ -72,9 +74,9 @@ class APIClient:
         with allure.step('Assert status code'):
             assert response.status_code == 200, f' Expected status code 200 but got {response.status_code}'
 
-        with allure.step('Validate get schema'):
+        with allure.step('Validate response schema'):
             response_json = response.json()
-            jsonschema.validate(response_json)
+            jsonschema.validate(response_json, CREATE_BOOKING_RESPONSE_SCHEMA)
         return response_json
 
     def get_booking_ids(self, params=None):
@@ -95,14 +97,7 @@ class APIClient:
             response = self.session.post(url, json=booking_json, timeout=Timeouts.TIMEOUT)
             response.raise_for_status()
 
-        with allure.step('Assert status code'):
-            assert response.status_code == 200, f' Expected status code 200 but got {response.status_code}'
-
-        with allure.step('Validate get schema'):
-            response_json = response.json()
-            jsonschema.validate(response_json)
-
-        return response_json
+        return response
 
     def update_booking_by_id(self, booking_id, booking_json):
         with allure.step('Update booking by id'):
@@ -113,9 +108,9 @@ class APIClient:
         with allure.step('Assert status code'):
             assert response.status_code == 200, f' Expected status code 200 but got {response.status_code}'
 
-        with allure.step('Validate get schema'):
+        with allure.step('Validate response schema'):
             response_json = response.json()
-            jsonschema.validate(response_json)
+            jsonschema.validate(response_json, BOOKING_RESPONSE_GET_SCHEMA)
 
         return response_json
 
@@ -127,22 +122,20 @@ class APIClient:
         with allure.step('Assert status code is 200'):
             assert response.status_code == 200, f' Expected status code 200 but got {response.status_code}'
 
-        with allure.step('Validate get schema'):
+        with allure.step('Validate response schema'):
             response_json = response.json()
-            jsonschema.validate(response_json)
+            jsonschema.validate(response_json, CREATE_BOOKING_RESPONSE_SCHEMA)
 
         return response_json
 
     def delete_booking_by_id(self, booking_id):
         with allure.step('Delete booking by id'):
             url = f'{self.base_url}{Endpoints.BOOKING_ENDPOINT}/{booking_id}'
-            response = self.session.delete(url, auth=HTTPBasicAuth(Users.USERNAME, Users.PASSWORD), timeout=Timeouts.TIMEOUT)
+            response = self.session.delete(url, auth=HTTPBasicAuth(Users.USERNAME, Users.PASSWORD),
+                                           timeout=Timeouts.TIMEOUT)
             response.raise_for_status()
 
         with allure.step('Assert status code'):
             assert response.status_code == 201, f' Expected status code 201 but got {response.status_code}'
 
         return response.status_code == 201
-
-
-

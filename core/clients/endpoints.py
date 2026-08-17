@@ -1,6 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
-class Endpoints(Enum):
+
+class Endpoints(StrEnum):
     PING_ENDPOINT = "/ping"
     AUTH_ENDPOINT = "/auth"
     BOOKING_ENDPOINT = "/booking"
