@@ -208,4 +208,3 @@ class TestBooking:
             assert response.status_code == 500, f'Expected status code 500, but got {response.status_code}'
             assert response.text == 'Internal Server Error'
 
-    logging.info("All tests passed")
